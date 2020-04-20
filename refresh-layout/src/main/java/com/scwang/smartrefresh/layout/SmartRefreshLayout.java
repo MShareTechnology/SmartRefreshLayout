@@ -3301,7 +3301,7 @@ public class SmartRefreshLayout extends ViewGroup implements RefreshLayout, Nest
      */
     @Override
     public boolean autoRefreshAnimationOnly() {
-        return autoRefresh(mAttachedToWindow ? 0 : 400, mReboundDuration, 1f * ((mHeaderMaxDragRate / 2 + 0.25f) * mHeaderHeight) / (mHeaderHeight == 0 ? 1 : mHeaderHeight), true);
+        return autoRefresh(0, mReboundDuration, 1f * ((mHeaderMaxDragRate / 2 + 0.25f) * mHeaderHeight) / (mHeaderHeight == 0 ? 1 : mHeaderHeight), true);
     }
 
     /**
