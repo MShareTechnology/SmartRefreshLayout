@@ -35,6 +35,12 @@ import androidx.core.view.NestedScrollingChildHelper;
 import androidx.core.view.NestedScrollingParent;
 import androidx.core.view.NestedScrollingParentHelper;
 import androidx.core.view.ViewCompat;
+import androidx.transition.AutoTransition;
+import androidx.transition.ChangeBounds;
+import androidx.transition.ChangeClipBounds;
+import androidx.transition.Transition;
+import androidx.transition.TransitionManager;
+import androidx.transition.TransitionValues;
 
 import com.scwang.smartrefresh.layout.api.DefaultRefreshFooterCreator;
 import com.scwang.smartrefresh.layout.api.DefaultRefreshHeaderCreator;
@@ -85,7 +91,7 @@ public class SmartRefreshLayout extends ViewGroup implements RefreshLayout, Nest
     //<editor-fold desc="属性变量 property and variable">
     //<editor-fold desc="滑动属性">
     protected int     mTouchSlop;
-    protected int     mSpinner;//当前的 Spinner 大于0表示下拉,小于零表示上拉
+    protected int     mSpinner                 = 0;//当前的 Spinner 大于0表示下拉,小于零表示上拉
     protected int     mLastSpinner;//最后的，的Spinner
     protected int     mTouchSpinner;//触摸时候，的Spinner
     protected int     mFloorDuration           = 300;//二楼展开时长
@@ -3280,7 +3286,7 @@ public class SmartRefreshLayout extends ViewGroup implements RefreshLayout, Nest
      */
     @Override
     public boolean autoRefresh() {
-        return autoRefresh(0, mReboundDuration, 1f * ((mHeaderMaxDragRate / 2 + 0.25f) * mHeaderHeight) / (mHeaderHeight == 0 ? 1 : mHeaderHeight), false);
+        return autoRefresh(mAttachedToWindow ? 0 : 350, mReboundDuration, 1f * ((mHeaderMaxDragRate / 2 + 0.25f) * mHeaderHeight) / (mHeaderHeight == 0 ? 1 : mHeaderHeight), false);
     }
 
     /**
@@ -3307,7 +3313,7 @@ public class SmartRefreshLayout extends ViewGroup implements RefreshLayout, Nest
      */
     @Override
     public boolean autoRefreshAnimationOnly() {
-        return autoRefresh(0, mReboundDuration, 1f * ((mHeaderMaxDragRate / 2 + 0.25f) * mHeaderHeight) / (mHeaderHeight == 0 ? 1 : mHeaderHeight), true);
+        return autoRefresh(mAttachedToWindow ? 0 : 350, mReboundDuration, 1f * ((mHeaderMaxDragRate / 2 + 0.25f) * mHeaderHeight) / (mHeaderHeight == 0 ? 1 : mHeaderHeight), true);
     }
 
     /**
@@ -3336,10 +3342,10 @@ public class SmartRefreshLayout extends ViewGroup implements RefreshLayout, Nest
 
                     final View thisView = SmartRefreshLayout.this;
                     mLastTouchX = thisView.getMeasuredWidth() / 2f;
-                    mKernel.setState(RefreshState.PullDownToRefresh);
+//                    mKernel.setState(RefreshState.PullDownToRefresh);
 
                     reboundAnimator = ValueAnimator.ofInt(mSpinner, (int) (mHeaderHeight * dragRate));
-                    reboundAnimator.setDuration(350);
+                    reboundAnimator.setDuration(320);
 //                    reboundAnimator.setInterpolator(new SmartUtil(SmartUtil.INTERPOLATOR_DECELERATE));
                     reboundAnimator.setInterpolator(new DecelerateInterpolator(1.3f));
                     reboundAnimator.addUpdateListener(new AnimatorUpdateListener() {
@@ -3351,6 +3357,11 @@ public class SmartRefreshLayout extends ViewGroup implements RefreshLayout, Nest
                         }
                     });
                     reboundAnimator.addListener(new AnimatorListenerAdapter() {
+                        @Override
+                        public void onAnimationStart(Animator animation) {
+                            mKernel.setState(RefreshState.PullDownToRefresh);
+                        }
+
                         @Override
                         public void onAnimationEnd(Animator animation) {
                             if (animation != null && animation.getDuration() == 0) {
